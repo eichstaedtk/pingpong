@@ -81,10 +81,11 @@ def run_screen(screen, clock, game_active):
             ball_switch += 1
             racket_height -= 5
 
-        ausgabetext = "Ballwechsel: " + str(ball_switch)
-        font = pygame.font.SysFont(None, 40)
-        text = font.render(ausgabetext, True, COLOR_RED)
-        screen.blit(text, [100, 10])
+        if racket_height <= 0:
+            game_active = False
+
+        screen.blit(pygame.font.SysFont(None, 40)
+                    .render("Ballwechsel: " + str(ball_switch), True, COLOR_RED), [100, 10])
 
         pygame.display.flip()
 
