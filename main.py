@@ -2,31 +2,33 @@ import pygame
 
 WINDOW_HEIGHT = 640
 WINDOW_WIDTH = 480
-RACKET_HEIGHT = 100
-
+COLOR_BLACK = (0, 0, 0)
+COLOR_ROT = (255, 0, 0)
 
 def start():
     pygame.init()
-    ORANGE = (255, 140, 0)
-    ROT = (255, 0, 0)
-    GRUEN = (0, 255, 0)
-    SCHWARZ = (0, 0, 0)
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption("Ping Pong Game made by @Konrad")
     game_active = True
     clock = pygame.time.Clock()
-    run_screen(screen, SCHWARZ, clock, game_active)
+    run_screen(screen, clock, game_active)
 
 
-def run_screen(screen, background_color, clock, game_active):
-    ball_1_y = 10
-    ball_1_x = 30
-    move_y = 4
-    move_x = 4
+def run_screen(screen, clock, game_active):
+    ball_y = 10
+    ball_x = 30
+    ball_move_y = 4
+    ball_move_x = 4
+    racket_height = 100
 
     player_1_x = 20
     player_1_y = 20
     player_1_move = 0
+    player_2_x = WINDOW_WIDTH - (2 * 20)
+    player_2_y = 20
+    player_2_move = 0
+
+    ball_switch = 0
 
     while game_active:
 
@@ -36,25 +38,34 @@ def run_screen(screen, background_color, clock, game_active):
                 print("Game over ....")
 
             if event.type == pygame.KEYDOWN:
-
-                # Taste für Spieler 1
                 if event.key == pygame.K_UP:
                     player_1_move = -6
                 elif event.key == pygame.K_DOWN:
                     player_1_move = 6
 
-        screen.fill(background_color)
+                elif event.key == pygame.K_w:
+                    player_2_move = -6
+                elif event.key == pygame.K_s:
+                    player_2_move = 6
 
-        draw_game(screen, ball_1_y, ball_1_x, player_1_x, player_1_y)
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                    player_1_move = 0
+                elif event.key == pygame.K_w or event.key == pygame.K_s:
+                    player_2_move = 0
 
-        ball_1_x += move_x
-        ball_1_y += move_y
+        screen.fill(COLOR_BLACK)
 
-        if ball_1_y > WINDOW_HEIGHT or ball_1_y < 0:
-            move_y = move_y * -1
+        player1, player2, ball = draw_game(screen, ball_y, ball_x, player_1_x, player_1_y, player_2_x, player_2_y,racket_height)
 
-        if ball_1_x > WINDOW_WIDTH or ball_1_x < 0:
-            move_x = move_x * -1
+        ball_x += ball_move_x
+        ball_y += ball_move_y
+
+        if ball_y > WINDOW_HEIGHT or ball_y < 0:
+            ball_move_y = ball_move_y * -1
+
+        if ball_x > WINDOW_WIDTH or ball_x < 0:
+            ball_move_x = ball_move_x * -1
 
         if player_1_move != 0:
             player_1_y += player_1_move
@@ -62,8 +73,34 @@ def run_screen(screen, background_color, clock, game_active):
         if player_1_y < 0:
             player_1_y = 0
 
-        if player_1_y > WINDOW_HEIGHT - RACKET_HEIGHT:
-            player_1_y = WINDOW_HEIGHT - RACKET_HEIGHT
+        if player_1_y > WINDOW_HEIGHT - racket_height:
+            player_1_y = WINDOW_HEIGHT - racket_height
+
+        if player_2_move != 0:
+            player_2_y += player_2_move
+
+        if player_2_y < 0:
+            player_2_y = 0
+
+        if player_2_y > WINDOW_HEIGHT - racket_height:
+            player_2_y = WINDOW_HEIGHT - racket_height
+
+        if player1.colliderect(ball):
+            ball_move_x = ball_move_x * -1
+            ball_x = 40
+            ball_switch += 1
+            racket_height -= 5
+
+        if player2.colliderect(ball):
+            ball_move_x = ball_move_x * -1
+            ball_x = player_2_x - 40
+            ball_switch += 1
+            racket_height -= 5
+
+        ausgabetext = "Ballwechsel: " + str(ball_switch)
+        font = pygame.font.SysFont(None, 40)
+        text = font.render(ausgabetext, True, COLOR_ROT)
+        screen.blit(text, [100, 10])
 
         pygame.display.flip()
 
@@ -72,11 +109,12 @@ def run_screen(screen, background_color, clock, game_active):
     pygame.quit()
 
 
-def draw_game(screen, ball_1_y, ball_1_x, player_1_x, player_1_y):
+def draw_game(screen, ball_1_y, ball_1_x, player_1_x, player_1_y, player_2_x, player_2_y, racket_height):
     weiss = (255, 255, 255)
-    pygame.draw.ellipse(screen, weiss, [ball_1_x, ball_1_y, 20, 20])
-
-    pygame.draw.rect(screen, weiss, [player_1_x, player_1_y, 20, RACKET_HEIGHT])
+    ball = pygame.draw.ellipse(screen, weiss, [ball_1_x, ball_1_y, 20, 20])
+    player_1 = pygame.draw.rect(screen, weiss, [player_1_x, player_1_y, 20, racket_height])
+    player_2 = pygame.draw.rect(screen, weiss, [player_2_x, player_2_y, 20, racket_height])
+    return player_1, player_2, ball
 
 
 # Press the green button in the gutter to run the script.
